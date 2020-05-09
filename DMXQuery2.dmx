@@ -1,0 +1,23 @@
+--SELECT TOP
+--Top 5 de los autores que más venden
+
+ WITH SET [TopVentas] AS 
+	NONEMPTY(
+			ORDER(
+					{[DIM TIENDA].[NOMBRE TIENDA].CHILDREN},
+					[Measures].[VENTAS],DESC))
+
+
+
+
+
+
+SELECT NON EMPTY
+{
+	([DIM AUTOR].[APELLIDO AUTOR].[APELLIDO AUTOR],
+	[DIM AUTOR].[NOMBRE AUTOR].[NOMBRE AUTOR])
+} ON COLUMNS,
+	NON EMPTY{
+	HEAD(TopVentas,5)
+	} ON ROWS
+FROM [PUBS DW]

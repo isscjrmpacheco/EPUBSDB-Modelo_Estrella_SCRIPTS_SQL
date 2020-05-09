@@ -1,0 +1,73 @@
+/*SELECT <especificación de eje> on columns,
+ <especificación de eje> on rows
+FROM <especificación de cubo>
+WHERE <especificación Slicer (rebanador)> */
+
+--Devuelve unicamente una celda que corresponde a los datos acumulados del cubo completo
+--SELECT [Measures].[VENTAS]  ON COLUMNS 
+--FROM [PUBS DW]
+
+--Si no se especifica nada toma la medida por defecto
+--SELECT FROM [PUBS DW]
+
+
+/*SELECT 
+{
+--Selecciona el atributo de la dimension autor, si solo se especifica como
+--[DIM AUTOR].[APELLIDO AUTOR] traerá la medida por defecto 7930.55
+	[DIM AUTOR].[APELLIDO AUTOR].[APELLIDO AUTOR],
+	[DIM AUTOR].[NOMBRE AUTOR].[NOMBRE AUTOR]
+} 
+--Se especifica que los atributos entre llaves seran las columnas de la consulta
+	ON COLUMNS 
+FROM [PUBS DW]
+*/
+SELECT 
+{
+--Selecciona el atributo de la dimension autor, si solo se especifica como
+--[DIM AUTOR].[APELLIDO AUTOR] traerá la medida por defecto 7930.55
+	[DIM AUTOR].[APELLIDO AUTOR].Members
+} 
+--Se especifica que los atributos entre llaves seran las columnas de la consulta
+	ON COLUMNS 
+FROM [PUBS DW]
+
+
+/*
+--Para otra forma de vista ahora 
+--Selecciona la medida, en este caso VENTAS, además le indicamos que ventas será una columna mas
+	SELECT [VENTAS] ON COLUMNS,NON EMPTY
+{
+--Selecciona varios atributos es importante incluirlos dentro de () para su correcta ejecucion
+	([DIM AUTOR].[APELLIDO AUTOR].[APELLIDO AUTOR],
+	[DIM AUTOR].[NOMBRE AUTOR].[NOMBRE AUTOR])
+} 
+--Se especifica que los atributos entre llaves seran las renglones de la consulta
+	ON ROWS 
+FROM [PUBS DW] */
+
+/*
+--La consulta anterior devuelve algunos valores nulos se agrega el comando NON EMPTY precedido de coma para que no mustre renglones con valores nulos
+	SELECT [VENTAS] ON COLUMNS,NON EMPTY
+{
+	([DIM AUTOR].[APELLIDO AUTOR].[APELLIDO AUTOR],
+	[DIM AUTOR].[NOMBRE AUTOR].[NOMBRE AUTOR])
+} 
+	ON ROWS 
+FROM [PUBS DW] */
+
+
+ WITH SET [TopVentas] AS 
+	NONEMPTY(
+			ORDER(
+					{[DIM AUTOR].[APELLIDO AUTOR].CHILDREN },
+					[Measures].[VENTAS],DESC))
+
+SELECT NON EMPTY
+{
+	([Measures].[VENTAS])
+} ON COLUMNS , NON EMPTY
+	{
+	HEAD(TopVentas,[DIM AUTOR].[APELLIDO AUTOR])
+	} ON ROWS
+FROM [PUBS DW]
